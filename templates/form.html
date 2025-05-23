@@ -4,112 +4,116 @@
     <meta charset="UTF-8">
     <title>안드로이드 스틱 신청</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f6f8;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        *{box-sizing:border-box;}
+        body{
+            margin:0;padding:0;
+            background:#f0f2f5;
+            font-family:'Noto Sans KR',sans-serif;
+            display:flex;justify-content:center;align-items:center;
+            min-height:100vh;
         }
-        .form-container {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            width: 400px;
+        .card{
+            width:420px;background:#fff;border-radius:14px;
+            box-shadow:0 8px 24px rgba(0,0,0,.08);
+            padding:38px 34px;
         }
-        .form-container h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-            text-align: center;
+        h2{text-align:center;color:#333;margin:0 0 28px;}
+        .field{margin-bottom:18px;}
+        .field label{display:block;font-weight:600;color:#444;margin-bottom:6px;}
+        .field input[type=text]{
+            width:100%;padding:10px 12px;font-size:14px;
+            border:1px solid #ccc;border-radius:6px;
         }
-        .form-group {
-            margin-bottom: 15px;
+        .search-btn{
+            padding:7px 12px;font-size:13px;border:0;
+            background:#3c8dbc;color:#fff;border-radius:6px;
+            cursor:pointer;white-space:nowrap;
         }
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
+        .search-btn:hover{background:#367fa9;}
+        .postcode{font-weight:700;color:#007bff;font-size:13px;margin-left:4px;}
+        .submit-btn{
+            width:100%;padding:12px;border:0;border-radius:6px;
+            background:#007bff;color:#fff;font-size:16px;cursor:pointer;
         }
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .btn {
-            width: 100%;
-            padding: 10px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        .confirmation {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #2ecc71;
-            background: #eafaf1;
-            color: #2ecc71;
-            display: none;
-        }
+        .submit-btn:hover{background:#0056b3;}
     </style>
+
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script>
-        function confirmAndSubmit(event) {
-            event.preventDefault();
-
-            const form = document.getElementById("stickForm");
-            const data = new FormData(form);
-
-            let summary = "다음 정보를 확인해주세요:\n\n";
-            data.forEach((value, key) => {
-                summary += `${key}: ${value}\n`;
-            });
-
-            if (confirm(summary + "\n\n제출하시겠습니까?")) {
-                form.submit();
+    function execDaumPostcode(){
+        new daum.Postcode({
+            oncomplete:function(data){
+                document.getElementById('address').value = data.address;
+                document.getElementById('postcodeDisplay').textContent = '('+data.zonecode+')';
+                document.getElementById('postcode').value = data.zonecode;
+                document.getElementById('detailAddress').focus();
             }
+        }).open();
+    }
+
+    function confirmAndSubmit(e){
+        e.preventDefault();
+        const form = document.getElementById('stickForm');
+        const data = new FormData(form);
+        const label = {
+            user_id:'아이디',
+            name:'이름',
+            license:'면허번호',
+            phone:'전화번호',
+            pharmacy:'약국명',
+            postcode:'우편번호',
+            address:'약국주소',
+            address_detail:'상세주소'
+        };
+        let msg = '▼ 신청 내용 확인 ▼\n\n';
+        for(const [k,v] of data.entries()){
+            msg += `${label[k]??k} : ${v||'─'}\n`;
         }
+        msg += '\n제출하시겠습니까?';
+        if(confirm(msg)) form.submit();
+    }
     </script>
 </head>
 <body>
-    <div class="form-container">
-        <h2>안드로이드 스틱 신청</h2>
-        <form id="stickForm" action="/submit" method="post" onsubmit="confirmAndSubmit(event)">
-            <div class="form-group">
-                <label for="user_id">아이디</label>
-                <input type="text" id="user_id" name="user_id" required>
-            </div>
-            <div class="form-group">
-                <label for="name">이름</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="license">약사면허번호</label>
-                <input type="text" id="license" name="license" required>
-            </div>
-            <div class="form-group">
-                <label for="phone">전화번호</label>
-                <input type="text" id="phone" name="phone" required>
-            </div>
-            <div class="form-group">
-                <label for="pharmacy">약국명</label>
-                <input type="text" id="pharmacy" name="pharmacy" required>
-            </div>
-            <div class="form-group">
-                <label for="address">약국주소</label>
-                <input type="text" id="address" name="address" required>
-            </div>
-            <button class="btn" type="submit">신청하기</button>
-        </form>
-    </div>
+<div class="card">
+    <h2>안드로이드 스틱 신청</h2>
+    <form id="stickForm" action="/submit" method="post" onsubmit="confirmAndSubmit(event)">
+        <div class="field">
+            <label for="user_id">아이디</label>
+            <input type="text" id="user_id" name="user_id" maxlength="20" required>
+        </div>
+        <div class="field">
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" maxlength="10" required>
+        </div>
+        <div class="field">
+            <label for="license">약사면허번호</label>
+            <input type="text" id="license" name="license" maxlength="20" required>
+        </div>
+        <div class="field">
+            <label for="phone">전화번호</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+        <div class="field">
+            <label for="pharmacy">약국명</label>
+            <input type="text" id="pharmacy" name="pharmacy" required>
+        </div>
+        <div class="field">
+            <label>
+                약국주소
+                <button type="button" class="search-btn" onclick="execDaumPostcode()">🔍 주소검색</button>
+                <span id="postcodeDisplay" class="postcode"></span>
+            </label>
+            <!-- hidden postcode -->
+            <input type="hidden" id="postcode" name="postcode">
+            <input type="text" id="address" name="address" readonly required>
+        </div>
+        <div class="field">
+            <label for="detailAddress">상세주소</label>
+            <input type="text" id="detailAddress" name="address_detail">
+        </div>
+        <button type="submit" class="submit-btn">신청하기</button>
+    </form>
+</div>
 </body>
 </html>
