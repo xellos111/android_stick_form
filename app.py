@@ -45,6 +45,7 @@ def submit():
             df["우편번호"]
             .astype(str)                       # 1) 우선 문자열화
             .str.replace(r"\.0$", "", regex=True)  # 2) 끝이 '.0'이면 제거
+            .str.zfill(5)
             .str.strip()
         )   
     if "약사면허번호" in df.columns:
