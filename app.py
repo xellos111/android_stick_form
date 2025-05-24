@@ -69,7 +69,11 @@ def admin():
 
     if os.path.exists(EXCEL_FILE):
         df = pd.read_excel(EXCEL_FILE)
-        return render_template('admin.html', table=df.to_html(index=False))
+        table_html = df.to_html(index=False, escape=False)
+        table_html = table_html.replace('<th>', '<th class="postcode">', 1)
+        table_html = table_html.replace('<td>', '<td class="postcode">', 1)
+
+        return render_template('admin.html', table=table_html)
     else:
         return "아직 신청자가 없습니다."
 
