@@ -17,8 +17,10 @@ def submit():
 
     if os.path.exists(EXCEL_FILE):
         df = pd.read_excel(EXCEL_FILE)
+
         if user_id in df['아이디'].astype(str).values:
             return "이미 신청하신 아이디입니다. 한 번만 신청할 수 있습니다.", 400
+
         if license_number in df['약사면허번호'].astype(str).values:
             return "이미 신청하신 면허번호입니다. 한 번만 신청할 수 있습니다.", 400
     else:
@@ -31,20 +33,33 @@ def submit():
         "약사면허번호": license_number,
         "전화번호": request.form['phone'],
         "약국명": request.form['pharmacy'],
-        "약국주소": request.form['address']
+        "우편번호": request.form.get('postcode', ''),
+        "약국주소": request.form.get('address', ''),
+        "상세주소": request.form.get('address_detail', '')
     }
 
     df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
+
+    if "우편번호" in df.columns:
+        df["우편번호"] = (
+            df["우편번호"]
+            .astype(str)                       # 1) 우선 문자열화
+            .str.replace(r"\.0$", "", regex=True)  # 2) 끝이 '.0'이면 제거
+            .str.strip()
+        )   
+    if "약사면허번호" in df.columns:
+        df['약사면허번호'] = df['약사면허번호'].astype(str)
+    if "전화번호" in df.columns:
+        df['전화번호'] = df['전화번호'].astype(str)
+
     os.makedirs('data', exist_ok=True)
     df.to_excel(EXCEL_FILE, index=False)
 
-    return redirect('/thankyou')  # 완료 페이지로 이동
+    return redirect('/thankyou')
 
 @app.route('/thankyou')
 def thankyou():
     return render_template('thankyou.html')
-
-
 
 @app.route('/admin')
 def admin():
@@ -67,6 +82,4 @@ def download():
     return send_file(EXCEL_FILE, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
+    app.run(host='0.0.0.0', port=9000, debug=True)
